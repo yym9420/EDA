@@ -1,0 +1,306 @@
+{
+  "version": "32.0.0",
+  "artifacts": {
+    "EDAStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "EDAStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "EDAStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/eu-west-1",
+      "properties": {
+        "templateFile": "EDAStack.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-eu-west-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-eu-west-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1/8301eefab2f428e6b58759cd15e081c5944a3a6127821186304ffc111a5ac7aa.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "EDAStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-eu-west-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "EDAStack.assets"
+      ],
+      "metadata": {
+        "/EDAStack/images/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "images9BF4DCD5"
+          }
+        ],
+        "/EDAStack/images/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "imagesPolicyFB131C08"
+          }
+        ],
+        "/EDAStack/images/AutoDeleteObjectsCustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "imagesAutoDeleteObjectsCustomResource67E97D48"
+          }
+        ],
+        "/EDAStack/images/Notifications/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "imagesNotifications254854F8"
+          }
+        ],
+        "/EDAStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+          }
+        ],
+        "/EDAStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F"
+          }
+        ],
+        "/EDAStack/ImageTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "ImageTableF6499A4E"
+            }
+          }
+        ],
+        "/EDAStack/ImageTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ImageTableF6499A4E"
+          }
+        ],
+        "/EDAStack/dead-letter-queue/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "deadletterqueueD1EEB012"
+          }
+        ],
+        "/EDAStack/img-created-queue/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "imgcreatedqueueB98FF37D"
+          }
+        ],
+        "/EDAStack/ImageEventsTopic/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ImageEventsTopicDF6332E2"
+          }
+        ],
+        "/EDAStack/ImageEventsTopic/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ImageEventsTopicPolicy884C1640"
+          }
+        ],
+        "/EDAStack/ProcessImageFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ProcessImageFnServiceRoleD858855F"
+          }
+        ],
+        "/EDAStack/ProcessImageFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ProcessImageFnServiceRoleDefaultPolicyE09EDA0F"
+          }
+        ],
+        "/EDAStack/ProcessImageFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ProcessImageFn86BA75E4"
+          }
+        ],
+        "/EDAStack/DeleteImageFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteImageFnServiceRole23816959"
+          }
+        ],
+        "/EDAStack/DeleteImageFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteImageFnServiceRoleDefaultPolicyF0DA7BFE"
+          }
+        ],
+        "/EDAStack/DeleteImageFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteImageFn05C2BCF8"
+          }
+        ],
+        "/EDAStack/UpdateImageDescriptionFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UpdateImageDescriptionFnServiceRoleB4510757"
+          }
+        ],
+        "/EDAStack/UpdateImageDescriptionFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UpdateImageDescriptionFnServiceRoleDefaultPolicy362CA193"
+          }
+        ],
+        "/EDAStack/UpdateImageDescriptionFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UpdateImageDescriptionFn185E70B1"
+          }
+        ],
+        "/EDAStack/ConfirmationMailerFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConfirmationMailerFnServiceRoleEDD60AAA"
+          }
+        ],
+        "/EDAStack/ConfirmationMailerFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConfirmationMailerFnServiceRoleDefaultPolicy2CBF1832"
+          }
+        ],
+        "/EDAStack/ConfirmationMailerFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConfirmationMailerFn0C29ED7E"
+          }
+        ],
+        "/EDAStack/ConfirmationMailerFn/AllowInvoke:EDAStackImageEventsTopic9F06E9EF": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConfirmationMailerFnAllowInvokeEDAStackImageEventsTopic9F06E9EFA895D3E8"
+          }
+        ],
+        "/EDAStack/ConfirmationMailerFn/ImageEventsTopic/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ConfirmationMailerFnImageEventsTopicEDD226FB"
+          }
+        ],
+        "/EDAStack/RejectionMailerFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "RejectionMailerFnServiceRole4D6EE3A5"
+          }
+        ],
+        "/EDAStack/RejectionMailerFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "RejectionMailerFnServiceRoleDefaultPolicy24210D26"
+          }
+        ],
+        "/EDAStack/RejectionMailerFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "RejectionMailerFn430945A2"
+          }
+        ],
+        "/EDAStack/RejectionMailerFn/AllowInvoke:EDAStackImageEventsTopic9F06E9EF": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "RejectionMailerFnAllowInvokeEDAStackImageEventsTopic9F06E9EF15879335"
+          }
+        ],
+        "/EDAStack/RejectionMailerFn/ImageEventsTopic/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "RejectionMailerFnImageEventsTopic602B93A0"
+          }
+        ],
+        "/EDAStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+          }
+        ],
+        "/EDAStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36"
+          }
+        ],
+        "/EDAStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691"
+          }
+        ],
+        "/EDAStack/DeleteEmailFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteEmailFnServiceRoleB38BD32C"
+          }
+        ],
+        "/EDAStack/DeleteEmailFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteEmailFnServiceRoleDefaultPolicy316C5CCD"
+          }
+        ],
+        "/EDAStack/DeleteEmailFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteEmailFn9E035ED5"
+          }
+        ],
+        "/EDAStack/DeleteEmailFn/DynamoDBEventSource:EDAStackImageTable3A20B3C1/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DeleteEmailFnDynamoDBEventSourceEDAStackImageTable3A20B3C148780B41"
+          }
+        ],
+        "/EDAStack/BucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketName"
+          }
+        ],
+        "/EDAStack/TopicARN": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "TopicARN"
+          }
+        ],
+        "/EDAStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/EDAStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/EDAStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "EDAStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}

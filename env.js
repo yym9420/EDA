@@ -1,0 +1,7 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SES_REGION = exports.SES_EMAIL_TO = exports.SES_EMAIL_FROM = void 0;
+exports.SES_EMAIL_FROM = "20105297@mail.wit.ie";
+exports.SES_EMAIL_TO = "20105297@mail.wit.ie";
+exports.SES_REGION = "eu-west-1";
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZW52LmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiZW52LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7OztBQUFhLFFBQUEsY0FBYyxHQUFHLHNCQUFzQixDQUFDO0FBQ3hDLFFBQUEsWUFBWSxHQUFHLHNCQUFzQixDQUFDO0FBQ3RDLFFBQUEsVUFBVSxHQUFHLFdBQVcsQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBjb25zdCBTRVNfRU1BSUxfRlJPTSA9IFwiMjAxMDUyOTdAbWFpbC53aXQuaWVcIjtcbmV4cG9ydCBjb25zdCBTRVNfRU1BSUxfVE8gPSBcIjIwMTA1Mjk3QG1haWwud2l0LmllXCI7XG5leHBvcnQgY29uc3QgU0VTX1JFR0lPTiA9IFwiZXUtd2VzdC0xXCI7Il19

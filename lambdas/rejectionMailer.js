@@ -1,0 +1,85 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handler = void 0;
+// import AWS from 'aws-sdk';
+const env_1 = require("../env");
+const client_ses_1 = require("@aws-sdk/client-ses");
+if (!env_1.SES_EMAIL_TO || !env_1.SES_EMAIL_FROM || !env_1.SES_REGION) {
+    throw new Error("Please add the SES_EMAIL_TO, SES_EMAIL_FROM and SES_REGION environment variables in an env.js file located in the root directory");
+}
+const client = new client_ses_1.SESClient({ region: "eu-west-1" });
+const handler = async (event) => {
+    console.log("Event ", event);
+    for (const record of event.Records) {
+        const parsedRecordBody = JSON.parse(record.body);
+        const snsMessage = JSON.parse(parsedRecordBody.Message);
+        if (snsMessage.Records) {
+            console.log("Record body ", JSON.stringify(snsMessage));
+            for (const messageRecord of snsMessage.Records) {
+                const s3e = messageRecord.s3;
+                // Object key may have spaces or unicode non-ASCII characters.
+                const srcKey = decodeURIComponent(s3e.object.key.replace(/\+/g, " "));
+                try {
+                    const { name, email, message } = {
+                        name: "The Photo Album",
+                        email: env_1.SES_EMAIL_FROM,
+                        message: `Image Upload Rejected. Invalid Image format. Please use JPEG or PNG.`,
+                    };
+                    const params = sendEmailParams({ name, email, message });
+                    await client.send(new client_ses_1.SendEmailCommand(params));
+                    console.log("Rejection email sent successfully!");
+                }
+                catch (error) {
+                    console.log("ERROR is: ", error);
+                    // return;
+                }
+            }
+        }
+    }
+};
+exports.handler = handler;
+function sendEmailParams({ name, email, message }) {
+    const parameters = {
+        Destination: {
+            ToAddresses: [env_1.SES_EMAIL_TO],
+        },
+        Message: {
+            Body: {
+                Html: {
+                    Charset: "UTF-8",
+                    Data: getHtmlContent({ name, email, message }),
+                },
+            },
+            Subject: {
+                Charset: "UTF-8",
+                Data: `Image Rejected`,
+            },
+        },
+        Source: env_1.SES_EMAIL_FROM,
+    };
+    return parameters;
+}
+function getHtmlContent({ name, email, message }) {
+    return `
+    <html>
+      <body>
+        <h2>Sent from: </h2>
+        <ul>
+          <li style="font-size:18px">👤 <b>${name}</b></li>
+          <li style="font-size:18px">✉️ <b>${email}</b></li>
+        </ul>
+        <p style="font-size:18px">${message}</p>
+      </body>
+    </html> 
+  `;
+}
+function getTextContent({ name, email, message }) {
+    return `
+    Received an Email. 📬
+    Sent from:
+        👤 ${name}
+        ✉️ ${email}
+    ${message}
+  `;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVqZWN0aW9uTWFpbGVyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsicmVqZWN0aW9uTWFpbGVyLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7OztBQUNBLDZCQUE2QjtBQUM3QixnQ0FBa0U7QUFDbEUsb0RBSTZCO0FBRTdCLElBQUksQ0FBQyxrQkFBWSxJQUFJLENBQUMsb0JBQWMsSUFBSSxDQUFDLGdCQUFVLEVBQUU7SUFDbkQsTUFBTSxJQUFJLEtBQUssQ0FDYixrSUFBa0ksQ0FDbkksQ0FBQztDQUNIO0FBUUQsTUFBTSxNQUFNLEdBQUcsSUFBSSxzQkFBUyxDQUFDLEVBQUUsTUFBTSxFQUFFLFdBQVcsRUFBRSxDQUFDLENBQUM7QUFFL0MsTUFBTSxPQUFPLEdBQWUsS0FBSyxFQUFFLEtBQVUsRUFBRSxFQUFFO0lBQ3BELE9BQU8sQ0FBQyxHQUFHLENBQUMsUUFBUSxFQUFFLEtBQUssQ0FBQyxDQUFDO0lBQzdCLEtBQUssTUFBTSxNQUFNLElBQUksS0FBSyxDQUFDLE9BQU8sRUFBRTtRQUVsQyxNQUFNLGdCQUFnQixHQUFHLElBQUksQ0FBQyxLQUFLLENBQUMsTUFBTSxDQUFDLElBQUksQ0FBQyxDQUFDO1FBQ2pELE1BQU0sVUFBVSxHQUFHLElBQUksQ0FBQyxLQUFLLENBQUMsZ0JBQWdCLENBQUMsT0FBTyxDQUFDLENBQUM7UUFFeEQsSUFBSSxVQUFVLENBQUMsT0FBTyxFQUFFO1lBQ3RCLE9BQU8sQ0FBQyxHQUFHLENBQUMsY0FBYyxFQUFFLElBQUksQ0FBQyxTQUFTLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQztZQUN4RCxLQUFLLE1BQU0sYUFBYSxJQUFJLFVBQVUsQ0FBQyxPQUFPLEVBQUU7Z0JBQzlDLE1BQU0sR0FBRyxHQUFHLGFBQWEsQ0FBQyxFQUFFLENBQUM7Z0JBQzdCLDhEQUE4RDtnQkFDOUQsTUFBTSxNQUFNLEdBQUcsa0JBQWtCLENBQUMsR0FBRyxDQUFDLE1BQU0sQ0FBQyxHQUFHLENBQUMsT0FBTyxDQUFDLEtBQUssRUFBRSxHQUFHLENBQUMsQ0FBQyxDQUFDO2dCQUN0RSxJQUFJO29CQUNGLE1BQU0sRUFBRSxJQUFJLEVBQUUsS0FBSyxFQUFFLE9BQU8sRUFBRSxHQUFtQjt3QkFDL0MsSUFBSSxFQUFFLGlCQUFpQjt3QkFDdkIsS0FBSyxFQUFFLG9CQUFjO3dCQUNyQixPQUFPLEVBQUUsc0VBQXNFO3FCQUNoRixDQUFDO29CQUVGLE1BQU0sTUFBTSxHQUFHLGVBQWUsQ0FBQyxFQUFFLElBQUksRUFBRSxLQUFLLEVBQUUsT0FBTyxFQUFFLENBQUMsQ0FBQztvQkFDekQsTUFBTSxNQUFNLENBQUMsSUFBSSxDQUFDLElBQUksNkJBQWdCLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQztvQkFDaEQsT0FBTyxDQUFDLEdBQUcsQ0FBQyxvQ0FBb0MsQ0FBQyxDQUFDO2lCQUNuRDtnQkFBQyxPQUFPLEtBQWMsRUFBRTtvQkFDdkIsT0FBTyxDQUFDLEdBQUcsQ0FBQyxZQUFZLEVBQUUsS0FBSyxDQUFDLENBQUM7b0JBQ2pDLFVBQVU7aUJBQ1g7YUFDRjtTQUNGO0tBQ0Y7QUFDSCxDQUFDLENBQUM7QUE5QlMsUUFBQSxPQUFPLFdBOEJoQjtBQUVKLFNBQVMsZUFBZSxDQUFDLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxPQUFPLEVBQWtCO0lBQy9ELE1BQU0sVUFBVSxHQUEwQjtRQUN4QyxXQUFXLEVBQUU7WUFDWCxXQUFXLEVBQUUsQ0FBQyxrQkFBWSxDQUFDO1NBQzVCO1FBQ0QsT0FBTyxFQUFFO1lBQ1AsSUFBSSxFQUFFO2dCQUNKLElBQUksRUFBRTtvQkFDSixPQUFPLEVBQUUsT0FBTztvQkFDaEIsSUFBSSxFQUFFLGNBQWMsQ0FBQyxFQUFFLElBQUksRUFBRSxLQUFLLEVBQUUsT0FBTyxFQUFFLENBQUM7aUJBQy9DO2FBQ0Y7WUFDRCxPQUFPLEVBQUU7Z0JBQ1AsT0FBTyxFQUFFLE9BQU87Z0JBQ2hCLElBQUksRUFBRSxnQkFBZ0I7YUFDdkI7U0FDRjtRQUNELE1BQU0sRUFBRSxvQkFBYztLQUN2QixDQUFDO0lBQ0YsT0FBTyxVQUFVLENBQUM7QUFDcEIsQ0FBQztBQUVELFNBQVMsY0FBYyxDQUFDLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxPQUFPLEVBQWtCO0lBQzlELE9BQU87Ozs7OzZDQUtvQyxJQUFJOzZDQUNKLEtBQUs7O29DQUVkLE9BQU87OztHQUd4QyxDQUFDO0FBQ0osQ0FBQztBQUVELFNBQVMsY0FBYyxDQUFDLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxPQUFPLEVBQWtCO0lBQzlELE9BQU87OzthQUdJLElBQUk7YUFDSixLQUFLO01BQ1osT0FBTztHQUNWLENBQUM7QUFDSixDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgU1FTSGFuZGxlciB9IGZyb20gXCJhd3MtbGFtYmRhXCI7XG4vLyBpbXBvcnQgQVdTIGZyb20gJ2F3cy1zZGsnO1xuaW1wb3J0IHsgU0VTX0VNQUlMX0ZST00sIFNFU19FTUFJTF9UTywgU0VTX1JFR0lPTiB9IGZyb20gXCIuLi9lbnZcIjtcbmltcG9ydCB7XG4gIFNFU0NsaWVudCxcbiAgU2VuZEVtYWlsQ29tbWFuZCxcbiAgU2VuZEVtYWlsQ29tbWFuZElucHV0LFxufSBmcm9tIFwiQGF3cy1zZGsvY2xpZW50LXNlc1wiO1xuXG5pZiAoIVNFU19FTUFJTF9UTyB8fCAhU0VTX0VNQUlMX0ZST00gfHwgIVNFU19SRUdJT04pIHtcbiAgdGhyb3cgbmV3IEVycm9yKFxuICAgIFwiUGxlYXNlIGFkZCB0aGUgU0VTX0VNQUlMX1RPLCBTRVNfRU1BSUxfRlJPTSBhbmQgU0VTX1JFR0lPTiBlbnZpcm9ubWVudCB2YXJpYWJsZXMgaW4gYW4gZW52LmpzIGZpbGUgbG9jYXRlZCBpbiB0aGUgcm9vdCBkaXJlY3RvcnlcIlxuICApO1xufVxuXG50eXBlIENvbnRhY3REZXRhaWxzID0ge1xuICBuYW1lOiBzdHJpbmc7XG4gIGVtYWlsOiBzdHJpbmc7XG4gIG1lc3NhZ2U6IHN0cmluZztcbn07XG5cbmNvbnN0IGNsaWVudCA9IG5ldyBTRVNDbGllbnQoeyByZWdpb246IFwiZXUtd2VzdC0xXCIgfSk7XG5cbmV4cG9ydCBjb25zdCBoYW5kbGVyOiBTUVNIYW5kbGVyID0gYXN5bmMgKGV2ZW50OiBhbnkpID0+IHtcbiAgICBjb25zb2xlLmxvZyhcIkV2ZW50IFwiLCBldmVudCk7XG4gICAgZm9yIChjb25zdCByZWNvcmQgb2YgZXZlbnQuUmVjb3Jkcykge1xuICAgICAgXG4gICAgICBjb25zdCBwYXJzZWRSZWNvcmRCb2R5ID0gSlNPTi5wYXJzZShyZWNvcmQuYm9keSk7XG4gICAgICBjb25zdCBzbnNNZXNzYWdlID0gSlNPTi5wYXJzZShwYXJzZWRSZWNvcmRCb2R5Lk1lc3NhZ2UpO1xuICBcbiAgICAgIGlmIChzbnNNZXNzYWdlLlJlY29yZHMpIHtcbiAgICAgICAgY29uc29sZS5sb2coXCJSZWNvcmQgYm9keSBcIiwgSlNPTi5zdHJpbmdpZnkoc25zTWVzc2FnZSkpO1xuICAgICAgICBmb3IgKGNvbnN0IG1lc3NhZ2VSZWNvcmQgb2Ygc25zTWVzc2FnZS5SZWNvcmRzKSB7XG4gICAgICAgICAgY29uc3QgczNlID0gbWVzc2FnZVJlY29yZC5zMztcbiAgICAgICAgICAvLyBPYmplY3Qga2V5IG1heSBoYXZlIHNwYWNlcyBvciB1bmljb2RlIG5vbi1BU0NJSSBjaGFyYWN0ZXJzLlxuICAgICAgICAgIGNvbnN0IHNyY0tleSA9IGRlY29kZVVSSUNvbXBvbmVudChzM2Uub2JqZWN0LmtleS5yZXBsYWNlKC9cXCsvZywgXCIgXCIpKTtcbiAgICAgICAgICB0cnkge1xuICAgICAgICAgICAgY29uc3QgeyBuYW1lLCBlbWFpbCwgbWVzc2FnZSB9OiBDb250YWN0RGV0YWlscyA9IHtcbiAgICAgICAgICAgICAgbmFtZTogXCJUaGUgUGhvdG8gQWxidW1cIixcbiAgICAgICAgICAgICAgZW1haWw6IFNFU19FTUFJTF9GUk9NLFxuICAgICAgICAgICAgICBtZXNzYWdlOiBgSW1hZ2UgVXBsb2FkIFJlamVjdGVkLiBJbnZhbGlkIEltYWdlIGZvcm1hdC4gUGxlYXNlIHVzZSBKUEVHIG9yIFBORy5gLFxuICAgICAgICAgICAgfTtcbiAgXG4gICAgICAgICAgICBjb25zdCBwYXJhbXMgPSBzZW5kRW1haWxQYXJhbXMoeyBuYW1lLCBlbWFpbCwgbWVzc2FnZSB9KTtcbiAgICAgICAgICAgIGF3YWl0IGNsaWVudC5zZW5kKG5ldyBTZW5kRW1haWxDb21tYW5kKHBhcmFtcykpO1xuICAgICAgICAgICAgY29uc29sZS5sb2coXCJSZWplY3Rpb24gZW1haWwgc2VudCBzdWNjZXNzZnVsbHkhXCIpO1xuICAgICAgICAgIH0gY2F0Y2ggKGVycm9yOiB1bmtub3duKSB7XG4gICAgICAgICAgICBjb25zb2xlLmxvZyhcIkVSUk9SIGlzOiBcIiwgZXJyb3IpO1xuICAgICAgICAgICAgLy8gcmV0dXJuO1xuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgfVxuICAgIH1cbiAgfTtcblxuZnVuY3Rpb24gc2VuZEVtYWlsUGFyYW1zKHsgbmFtZSwgZW1haWwsIG1lc3NhZ2UgfTogQ29udGFjdERldGFpbHMpIHtcbiAgY29uc3QgcGFyYW1ldGVyczogU2VuZEVtYWlsQ29tbWFuZElucHV0ID0ge1xuICAgIERlc3RpbmF0aW9uOiB7XG4gICAgICBUb0FkZHJlc3NlczogW1NFU19FTUFJTF9UT10sXG4gICAgfSxcbiAgICBNZXNzYWdlOiB7XG4gICAgICBCb2R5OiB7XG4gICAgICAgIEh0bWw6IHtcbiAgICAgICAgICBDaGFyc2V0OiBcIlVURi04XCIsXG4gICAgICAgICAgRGF0YTogZ2V0SHRtbENvbnRlbnQoeyBuYW1lLCBlbWFpbCwgbWVzc2FnZSB9KSxcbiAgICAgICAgfSxcbiAgICAgIH0sXG4gICAgICBTdWJqZWN0OiB7XG4gICAgICAgIENoYXJzZXQ6IFwiVVRGLThcIixcbiAgICAgICAgRGF0YTogYEltYWdlIFJlamVjdGVkYCxcbiAgICAgIH0sXG4gICAgfSxcbiAgICBTb3VyY2U6IFNFU19FTUFJTF9GUk9NLFxuICB9O1xuICByZXR1cm4gcGFyYW1ldGVycztcbn1cblxuZnVuY3Rpb24gZ2V0SHRtbENvbnRlbnQoeyBuYW1lLCBlbWFpbCwgbWVzc2FnZSB9OiBDb250YWN0RGV0YWlscykge1xuICByZXR1cm4gYFxuICAgIDxodG1sPlxuICAgICAgPGJvZHk+XG4gICAgICAgIDxoMj5TZW50IGZyb206IDwvaDI+XG4gICAgICAgIDx1bD5cbiAgICAgICAgICA8bGkgc3R5bGU9XCJmb250LXNpemU6MThweFwiPvCfkaQgPGI+JHtuYW1lfTwvYj48L2xpPlxuICAgICAgICAgIDxsaSBzdHlsZT1cImZvbnQtc2l6ZToxOHB4XCI+4pyJ77iPIDxiPiR7ZW1haWx9PC9iPjwvbGk+XG4gICAgICAgIDwvdWw+XG4gICAgICAgIDxwIHN0eWxlPVwiZm9udC1zaXplOjE4cHhcIj4ke21lc3NhZ2V9PC9wPlxuICAgICAgPC9ib2R5PlxuICAgIDwvaHRtbD4gXG4gIGA7XG59XG5cbmZ1bmN0aW9uIGdldFRleHRDb250ZW50KHsgbmFtZSwgZW1haWwsIG1lc3NhZ2UgfTogQ29udGFjdERldGFpbHMpIHtcbiAgcmV0dXJuIGBcbiAgICBSZWNlaXZlZCBhbiBFbWFpbC4g8J+TrFxuICAgIFNlbnQgZnJvbTpcbiAgICAgICAg8J+RpCAke25hbWV9XG4gICAgICAgIOKcie+4jyAke2VtYWlsfVxuICAgICR7bWVzc2FnZX1cbiAgYDtcbn1cbiJdfQ==

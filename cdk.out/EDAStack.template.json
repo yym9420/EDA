@@ -1,0 +1,1412 @@
+{
+ "Resources": {
+  "images9BF4DCD5": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/images/Resource"
+   }
+  },
+  "imagesPolicyFB131C08": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "images9BF4DCD5"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "images9BF4DCD5",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "images9BF4DCD5",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/images/Policy/Resource"
+   }
+  },
+  "imagesAutoDeleteObjectsCustomResource67E97D48": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "images9BF4DCD5"
+    }
+   },
+   "DependsOn": [
+    "imagesPolicyFB131C08"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/images/AutoDeleteObjectsCustomResource/Default"
+   }
+  },
+  "imagesNotifications254854F8": {
+   "Type": "Custom::S3BucketNotifications",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "images9BF4DCD5"
+    },
+    "NotificationConfiguration": {
+     "TopicConfigurations": [
+      {
+       "Events": [
+        "s3:ObjectCreated:*"
+       ],
+       "TopicArn": {
+        "Ref": "ImageEventsTopicDF6332E2"
+       }
+      },
+      {
+       "Events": [
+        "s3:ObjectRemoved:*"
+       ],
+       "TopicArn": {
+        "Ref": "ImageEventsTopicDF6332E2"
+       }
+      }
+     ]
+    },
+    "Managed": true
+   },
+   "DependsOn": [
+    "ImageEventsTopicPolicy884C1640",
+    "ImageEventsTopicDF6332E2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/images/Notifications/Resource"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "a657308e723bb9460b800cb3b47dadb74e28243edfe246bf7755c45ec312eb97.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "images9BF4DCD5"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.a657308e723bb9460b800cb3b47dadb74e28243edfe246bf7755c45ec312eb97",
+    "aws:asset:property": "Code"
+   }
+  },
+  "ImageTableF6499A4E": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "ImageName",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "ImageName",
+      "KeyType": "HASH"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "StreamSpecification": {
+     "StreamViewType": "NEW_IMAGE"
+    },
+    "TableName": "Images"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ImageTable/Resource"
+   }
+  },
+  "deadletterqueueD1EEB012": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "MessageRetentionPeriod": 1800
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/dead-letter-queue/Resource"
+   }
+  },
+  "imgcreatedqueueB98FF37D": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "ReceiveMessageWaitTimeSeconds": 10,
+    "RedrivePolicy": {
+     "deadLetterTargetArn": {
+      "Fn::GetAtt": [
+       "deadletterqueueD1EEB012",
+       "Arn"
+      ]
+     },
+     "maxReceiveCount": 2
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/img-created-queue/Resource"
+   }
+  },
+  "ImageEventsTopicDF6332E2": {
+   "Type": "AWS::SNS::Topic",
+   "Properties": {
+    "DisplayName": "Image Events Topic"
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ImageEventsTopic/Resource"
+   }
+  },
+  "ImageEventsTopicPolicy884C1640": {
+   "Type": "AWS::SNS::TopicPolicy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sns:Publish",
+       "Condition": {
+        "ArnLike": {
+         "aws:SourceArn": {
+          "Fn::GetAtt": [
+           "images9BF4DCD5",
+           "Arn"
+          ]
+         }
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "s3.amazonaws.com"
+       },
+       "Resource": {
+        "Ref": "ImageEventsTopicDF6332E2"
+       },
+       "Sid": "0"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Topics": [
+     {
+      "Ref": "ImageEventsTopicDF6332E2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ImageEventsTopic/Policy/Resource"
+   }
+  },
+  "ProcessImageFnServiceRoleD858855F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ProcessImageFn/ServiceRole/Resource"
+   }
+  },
+  "ProcessImageFnServiceRoleDefaultPolicyE09EDA0F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "deadletterqueueD1EEB012",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "images9BF4DCD5",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "images9BF4DCD5",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ImageTableF6499A4E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ProcessImageFnServiceRoleDefaultPolicyE09EDA0F",
+    "Roles": [
+     {
+      "Ref": "ProcessImageFnServiceRoleD858855F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ProcessImageFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ProcessImageFn86BA75E4": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "95a415ab4474edecd7ccd086f955c064e00f761e7788b74968b5dbc329161cc0.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "deadletterqueueD1EEB012",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "TABLE_NAME": {
+       "Ref": "ImageTableF6499A4E"
+      },
+      "REGION": "eu-west-1",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "ProcessImageFnServiceRoleD858855F",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ProcessImageFnServiceRoleDefaultPolicyE09EDA0F",
+    "ProcessImageFnServiceRoleD858855F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ProcessImageFn/Resource",
+    "aws:asset:path": "asset.95a415ab4474edecd7ccd086f955c064e00f761e7788b74968b5dbc329161cc0",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DeleteImageFnServiceRole23816959": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteImageFn/ServiceRole/Resource"
+   }
+  },
+  "DeleteImageFnServiceRoleDefaultPolicyF0DA7BFE": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "images9BF4DCD5",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "images9BF4DCD5",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ImageTableF6499A4E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DeleteImageFnServiceRoleDefaultPolicyF0DA7BFE",
+    "Roles": [
+     {
+      "Ref": "DeleteImageFnServiceRole23816959"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteImageFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DeleteImageFn05C2BCF8": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "ad39daf9e1e6c6c745c8ea184c69d8f7b84ba0316cafca1c2eeb208d17486264.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "TABLE_NAME": {
+       "Ref": "ImageTableF6499A4E"
+      },
+      "REGION": "eu-west-1",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "DeleteImageFnServiceRole23816959",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "DeleteImageFnServiceRoleDefaultPolicyF0DA7BFE",
+    "DeleteImageFnServiceRole23816959"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteImageFn/Resource",
+    "aws:asset:path": "asset.ad39daf9e1e6c6c745c8ea184c69d8f7b84ba0316cafca1c2eeb208d17486264",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "UpdateImageDescriptionFnServiceRoleB4510757": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/UpdateImageDescriptionFn/ServiceRole/Resource"
+   }
+  },
+  "UpdateImageDescriptionFnServiceRoleDefaultPolicy362CA193": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "images9BF4DCD5",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "images9BF4DCD5",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ImageTableF6499A4E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "UpdateImageDescriptionFnServiceRoleDefaultPolicy362CA193",
+    "Roles": [
+     {
+      "Ref": "UpdateImageDescriptionFnServiceRoleB4510757"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/UpdateImageDescriptionFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "UpdateImageDescriptionFn185E70B1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "dcd3ccb2a1afdf639d2a366b47a293dc9e1e8a9db316fab749c1edadf8db050d.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "TABLE_NAME": {
+       "Ref": "ImageTableF6499A4E"
+      },
+      "REGION": "eu-west-1",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "UpdateImageDescriptionFnServiceRoleB4510757",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "UpdateImageDescriptionFnServiceRoleDefaultPolicy362CA193",
+    "UpdateImageDescriptionFnServiceRoleB4510757"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/UpdateImageDescriptionFn/Resource",
+    "aws:asset:path": "asset.dcd3ccb2a1afdf639d2a366b47a293dc9e1e8a9db316fab749c1edadf8db050d",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ConfirmationMailerFnServiceRoleEDD60AAA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ConfirmationMailerFn/ServiceRole/Resource"
+   }
+  },
+  "ConfirmationMailerFnServiceRoleDefaultPolicy2CBF1832": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+        "ses:SendTemplatedEmail"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ConfirmationMailerFnServiceRoleDefaultPolicy2CBF1832",
+    "Roles": [
+     {
+      "Ref": "ConfirmationMailerFnServiceRoleEDD60AAA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ConfirmationMailerFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ConfirmationMailerFn0C29ED7E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "7c9b064bbf11d580371f7f25ae810cc8a2aa53403f217edf2dc3505b69a579a3.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 1024,
+    "Role": {
+     "Fn::GetAtt": [
+      "ConfirmationMailerFnServiceRoleEDD60AAA",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x",
+    "Timeout": 3
+   },
+   "DependsOn": [
+    "ConfirmationMailerFnServiceRoleDefaultPolicy2CBF1832",
+    "ConfirmationMailerFnServiceRoleEDD60AAA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ConfirmationMailerFn/Resource",
+    "aws:asset:path": "asset.7c9b064bbf11d580371f7f25ae810cc8a2aa53403f217edf2dc3505b69a579a3",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ConfirmationMailerFnAllowInvokeEDAStackImageEventsTopic9F06E9EFA895D3E8": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ConfirmationMailerFn0C29ED7E",
+      "Arn"
+     ]
+    },
+    "Principal": "sns.amazonaws.com",
+    "SourceArn": {
+     "Ref": "ImageEventsTopicDF6332E2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ConfirmationMailerFn/AllowInvoke:EDAStackImageEventsTopic9F06E9EF"
+   }
+  },
+  "ConfirmationMailerFnImageEventsTopicEDD226FB": {
+   "Type": "AWS::SNS::Subscription",
+   "Properties": {
+    "Endpoint": {
+     "Fn::GetAtt": [
+      "ConfirmationMailerFn0C29ED7E",
+      "Arn"
+     ]
+    },
+    "Protocol": "lambda",
+    "TopicArn": {
+     "Ref": "ImageEventsTopicDF6332E2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/ConfirmationMailerFn/ImageEventsTopic/Resource"
+   }
+  },
+  "RejectionMailerFnServiceRole4D6EE3A5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/RejectionMailerFn/ServiceRole/Resource"
+   }
+  },
+  "RejectionMailerFnServiceRoleDefaultPolicy24210D26": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+        "ses:SendTemplatedEmail"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "RejectionMailerFnServiceRoleDefaultPolicy24210D26",
+    "Roles": [
+     {
+      "Ref": "RejectionMailerFnServiceRole4D6EE3A5"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/RejectionMailerFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "RejectionMailerFn430945A2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "8aae6b5339e2c955c8bf705ca7aa193b8d7e787f17df358d474265aa7342995a.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 1024,
+    "Role": {
+     "Fn::GetAtt": [
+      "RejectionMailerFnServiceRole4D6EE3A5",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x",
+    "Timeout": 3
+   },
+   "DependsOn": [
+    "RejectionMailerFnServiceRoleDefaultPolicy24210D26",
+    "RejectionMailerFnServiceRole4D6EE3A5"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/RejectionMailerFn/Resource",
+    "aws:asset:path": "asset.8aae6b5339e2c955c8bf705ca7aa193b8d7e787f17df358d474265aa7342995a",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "RejectionMailerFnAllowInvokeEDAStackImageEventsTopic9F06E9EF15879335": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "RejectionMailerFn430945A2",
+      "Arn"
+     ]
+    },
+    "Principal": "sns.amazonaws.com",
+    "SourceArn": {
+     "Ref": "ImageEventsTopicDF6332E2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/RejectionMailerFn/AllowInvoke:EDAStackImageEventsTopic9F06E9EF"
+   }
+  },
+  "RejectionMailerFnImageEventsTopic602B93A0": {
+   "Type": "AWS::SNS::Subscription",
+   "Properties": {
+    "Endpoint": {
+     "Fn::GetAtt": [
+      "RejectionMailerFn430945A2",
+      "Arn"
+     ]
+    },
+    "Protocol": "lambda",
+    "TopicArn": {
+     "Ref": "ImageEventsTopicDF6332E2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/RejectionMailerFn/ImageEventsTopic/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:PutBucketNotification",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+    "Roles": [
+     {
+      "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Description": "AWS CloudFormation handler for \"Custom::S3BucketNotifications\" resources (@aws-cdk/aws-s3)",
+    "Code": {
+     "ZipFile": "import boto3  # type: ignore\nimport json\nimport logging\nimport urllib.request\n\ns3 = boto3.client(\"s3\")\n\nEVENTBRIDGE_CONFIGURATION = 'EventBridgeConfiguration'\n\nCONFIGURATION_TYPES = [\"TopicConfigurations\", \"QueueConfigurations\", \"LambdaFunctionConfigurations\"]\n\ndef handler(event: dict, context):\n  response_status = \"SUCCESS\"\n  error_message = \"\"\n  try:\n    props = event[\"ResourceProperties\"]\n    bucket = props[\"BucketName\"]\n    notification_configuration = props[\"NotificationConfiguration\"]\n    request_type = event[\"RequestType\"]\n    managed = props.get('Managed', 'true').lower() == 'true'\n    stack_id = event['StackId']\n\n    if managed:\n      config = handle_managed(request_type, notification_configuration)\n    else:\n      config = handle_unmanaged(bucket, stack_id, request_type, notification_configuration)\n\n    put_bucket_notification_configuration(bucket, config)\n  except Exception as e:\n    logging.exception(\"Failed to put bucket notification configuration\")\n    response_status = \"FAILED\"\n    error_message = f\"Error: {str(e)}. \"\n  finally:\n    submit_response(event, context, response_status, error_message)\n\ndef handle_managed(request_type, notification_configuration):\n  if request_type == 'Delete':\n    return {}\n  return notification_configuration\n\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration):\n  external_notifications = find_external_notifications(bucket, stack_id)\n\n  if request_type == 'Delete':\n    return external_notifications\n\n  def with_id(notification):\n    notification['Id'] = f\"{stack_id}-{hash(json.dumps(notification, sort_keys=True))}\"\n    return notification\n\n  notifications = {}\n  for t in CONFIGURATION_TYPES:\n    external = external_notifications.get(t, [])\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\n    notifications[t] = external + incoming\n\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\n\n  return notifications\n\ndef find_external_notifications(bucket, stack_id):\n  existing_notifications = get_bucket_notification_configuration(bucket)\n  external_notifications = {}\n  for t in CONFIGURATION_TYPES:\n    external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f\"{stack_id}-\")]\n\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\n\n  return external_notifications\n\ndef get_bucket_notification_configuration(bucket):\n  return s3.get_bucket_notification_configuration(Bucket=bucket)\n\ndef put_bucket_notification_configuration(bucket, notification_configuration):\n  s3.put_bucket_notification_configuration(Bucket=bucket, NotificationConfiguration=notification_configuration)\n\ndef submit_response(event: dict, context, response_status: str, error_message: str):\n  response_body = json.dumps(\n    {\n      \"Status\": response_status,\n      \"Reason\": f\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\",\n      \"PhysicalResourceId\": event.get(\"PhysicalResourceId\") or event[\"LogicalResourceId\"],\n      \"StackId\": event[\"StackId\"],\n      \"RequestId\": event[\"RequestId\"],\n      \"LogicalResourceId\": event[\"LogicalResourceId\"],\n      \"NoEcho\": False,\n    }\n  ).encode(\"utf-8\")\n  headers = {\"content-type\": \"\", \"content-length\": str(len(response_body))}\n  try:\n    req = urllib.request.Request(url=event[\"ResponseURL\"], headers=headers, data=response_body, method=\"PUT\")\n    with urllib.request.urlopen(req) as response:\n      print(response.read().decode(\"utf-8\"))\n    print(\"Status code: \" + response.reason)\n  except Exception as e:\n      print(\"send(..) failed executing request.urlopen(..): \" + str(e))\n"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource"
+   }
+  },
+  "DeleteEmailFnServiceRoleB38BD32C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteEmailFn/ServiceRole/Resource"
+   }
+  },
+  "DeleteEmailFnServiceRoleDefaultPolicy316C5CCD": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:ListStreams",
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+        "ses:SendTemplatedEmail"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "dynamodb:DescribeStream",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "ImageTableF6499A4E",
+         "StreamArn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "images9BF4DCD5",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "images9BF4DCD5",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ImageTableF6499A4E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DeleteEmailFnServiceRoleDefaultPolicy316C5CCD",
+    "Roles": [
+     {
+      "Ref": "DeleteEmailFnServiceRoleB38BD32C"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteEmailFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DeleteEmailFn9E035ED5": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-eu-west-1"
+     },
+     "S3Key": "e7f7fc43e416b305515e729c9c4d03c5ff7d96e163a2139809ebd8f18b43f2cf.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "TABLE_NAME": {
+       "Ref": "ImageTableF6499A4E"
+      },
+      "REGION": "eu-west-1",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "DeleteEmailFnServiceRoleB38BD32C",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x"
+   },
+   "DependsOn": [
+    "DeleteEmailFnServiceRoleDefaultPolicy316C5CCD",
+    "DeleteEmailFnServiceRoleB38BD32C"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteEmailFn/Resource",
+    "aws:asset:path": "asset.e7f7fc43e416b305515e729c9c4d03c5ff7d96e163a2139809ebd8f18b43f2cf",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DeleteEmailFnDynamoDBEventSourceEDAStackImageTable3A20B3C148780B41": {
+   "Type": "AWS::Lambda::EventSourceMapping",
+   "Properties": {
+    "BatchSize": 5,
+    "EventSourceArn": {
+     "Fn::GetAtt": [
+      "ImageTableF6499A4E",
+      "StreamArn"
+     ]
+    },
+    "FunctionName": {
+     "Ref": "DeleteEmailFn9E035ED5"
+    },
+    "StartingPosition": "TRIM_HORIZON"
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/DeleteEmailFn/DynamoDBEventSource:EDAStackImageTable3A20B3C1/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/2VRPW/DIBD9Ld0xjZwlaxO1W9PUzm5hoBG2AZcDVxHivxewFbvqwvu4x90hSnw44N0T+YGCsr4YRIt9bQntUbQaD3vsj4723KLTl1rYDBc9CHpf7UXP4kiAB8TuikjNYssraQeespkEBN+A/afjLpuZRFNF86pHQXMyk3yuo7aydi1QI0YrtEq1rQ5oILJlpFGa8Q7wOcObUzSnBZHYV3peKeM6YmZxm31DALgF/JJgaYh9jDz6pDg3UgAk9TpxZWvtDOXvZByFuqXAfzcEdHJgtaw4ZD9v8eB/ShejJ8G4QXmJ+DO31HZ78cPZ0dmA0ktxB89TWeJd/NIOhCiMU1ZIjqsZfwEfgbr/7gEAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "EDAStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "BucketName": {
+   "Value": {
+    "Ref": "images9BF4DCD5"
+   }
+  },
+  "TopicARN": {
+   "Value": {
+    "Ref": "ImageEventsTopicDF6332E2"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
